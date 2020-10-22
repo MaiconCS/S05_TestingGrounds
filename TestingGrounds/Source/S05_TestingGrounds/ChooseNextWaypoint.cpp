@@ -3,19 +3,26 @@
 
 #include "H:\repos\Unreal\S05_TestingGrounds\TestingGrounds\Source\S05_TestingGrounds\ChooseNextWaypoint.h"
 #include "C:\Program Files\Epic Games\UE_4.22\Engine\Source\Runtime\AIModule\Classes\AIController.h"
-#include "H:\repos\Unreal\S05_TestingGrounds\TestingGrounds\Source\S05_TestingGrounds\PatrollingGuard.h" // TODO remove coupling
+#include "H:\repos\Unreal\S05_TestingGrounds\TestingGrounds\Source\S05_TestingGrounds\PatrolRoute.h" 
 #include "C:\Program Files\Epic Games\UE_4.22\Engine\Source\Runtime\AIModule\Classes\BehaviorTree\BlackboardComponent.h"
 
 
 EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	//TODO protect against empty patrol routes
-
+	
 	//Get the patrol points, 1º node
-	auto AIController = OwnerComp.GetAIOwner();
-	auto ControlledPawn = AIController->GetPawn();
-	auto PatrollingGuard = Cast<APatrollingGuard>(ControlledPawn);
-	auto PatrolPoints = PatrollingGuard->PatrolPointsCPP;
+	auto ControlledPawn = OwnerComp.GetAIOwner()->GetPawn();
+	auto PatrolRoute = ControlledPawn->FindComponentByClass<UPatrolRoute>();
+
+	if ( !ensure(PatrolRoute) )	{ return EBTNodeResult::Failed;	}
+	
+	//Warn about empty patrol routes
+	auto PatrolPoints = PatrolRoute->GetPatrolPoints();
+	if (PatrolPoints.Num() == 0 ) 
+	{
+		UE_LOG(LogTemp, Warning, TEXT(" Not set a patrol point for guard"));
+		return EBTNodeResult::Failed;
+	}
 
 	//Set Next Waypoint, 2º node
 	auto BlackboardComp = OwnerComp.GetBlackboardComponent();
@@ -25,9 +32,7 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& Own
 	//Cycle the Index, 3º node, use Mod = Rest of the division operator.
 	auto NextIndex = (Index + 1) % PatrolPoints.Num();
 	BlackboardComp->SetValueAsInt(IndexKey.SelectedKeyName, NextIndex);
-
-
-	
+			
 	
 	//UE_LOG(LogTemp, Warning, TEXT(" Waypoint index: %i "), Index);
 	return EBTNodeResult::Succeeded;
