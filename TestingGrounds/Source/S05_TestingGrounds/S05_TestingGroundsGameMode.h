@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "C:\Program Files\Epic Games\UE_4.22\Engine\Source\Runtime\Core\Public\CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "S05_TestingGroundsGameMode.generated.h"
 
